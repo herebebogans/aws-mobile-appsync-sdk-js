@@ -35,10 +35,13 @@ import { createRetryLink } from './link/retry-link';
 import { boundEnqueueDeltaSync, buildSync, DELTASYNC_KEY, hashForOptions } from "./deltaSync";
 import { Subscription } from 'apollo-client/util/Observable';
 import { CONTROL_EVENTS_KEY } from './link/subscription-handshake-link';
+const proxy = require('proxy-agent');
+
+const proxyUrl = process.env.HTTP_PROXY || process.env.HTTP_PROXY;
 
 export { defaultDataIdFromObject };
 
-export const createSubscriptionHandshakeLink = (url: string, resultsFetcherLink: ApolloLink = createHttpLink({ uri: url })) => {
+export const createSubscriptionHandshakeLink = (url: string, resultsFetcherLink: ApolloLink = createHttpLink({ uri: url, fetchOptions: {agent: proxyUrl ? proxy(proxyUrl) : false} })) => {
     return ApolloLink.split(
         operation => {
             const { query } = operation;
@@ -75,7 +78,7 @@ export const createAppSyncLink = ({
     region,
     auth,
     complexObjectsCredentials,
-    resultsFetcherLink = createHttpLink({ uri: url }),
+    resultsFetcherLink = createHttpLink({ uri: url, fetchOptions: {agent: proxyUrl ? proxy(proxyUrl) : false} }),
     conflictResolver,
 }: {
         url: string,
